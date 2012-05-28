@@ -1,78 +1,131 @@
+
 var speed = 20;
-var blockSize = 20;
-var types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
 
 paper.install(window);
 window.onload = function() {
   paper.setup('tetrisCanvas');
 
-  block = new Tetrimino(new Point(200, 200), new Size(blockSize, blockSize));
-  path.strokeColor='red';
+  block = new Tetrimino();
+  var activeBlock = block;
+
   view.onFrame = function(event) {
     if (event.count % speed === speed - 1) {
-      //block.iterate();
+      block.iterate();
     }
   }
 };
 
 var Tetrimino = Base.extend({
   initialize: function(point, size) {
-    this.x = point.x;
-    this.y = point.y;
-    this.width = size.width;
-    this.height = size.height;
+    var BLOCKSIZE = 20;
+    this.types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+    this.point = (typeof point === 'undefined') ? new Point(200,200) : point;
+    this.size = (typeof size === 'undefined') ? new Size(BLOCKSIZE,BLOCKSIZE) : size;
     this.isFalling = true;
-    this.createPaths();
-  },
-
-  createPaths: function() {
-    this.item = new CompoundPath(
-      new Path.Rectangle(
-        new Point(this.x, this.y), 
-        new Size(this.width, this.height)
-      )
-    );
-
-    for (var i=0; i<3; i++) 
-      this.item.addChild(nextBlock(this.item));
-
-    console.log(this.item);
-
-    this.item.strokeColor = 'black';
-    this.item.fillColor = 'green';
+    this.createPath(this.point, this.size);
   },
 
   iterate: function() {
     if (this.isFalling) {
-      this.y += this.height;
-      this.item.position.y = this.y + this.height / 2;
+      this.item.position.y += this.size.height;
 
-      if (this.y >= view.size.height - this.height)
+      if (this.item.position.y >= view.size.height - this.size.height)
         this.isFalling = false;
     }
+  },
+
+  createPath: function(point, blockSize) {
+    var grid = createGrid(point, blockSize, 3, 4);
+    var type = this.types[Math.round(Math.random() * 7)];
+
+    switch(type) {
+    case 'I':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[2][1], grid[3][2]),
+         new Path.Rectangle(grid[3][1], grid[4][2])
+       );
+      this.item.fillColor = 'red';
+      break;
+    case 'J':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[2][1], grid[3][2]),
+         new Path.Rectangle(grid[2][0], grid[3][1])
+       );
+      this.item.fillColor = 'yellow';
+      break;
+    case 'L':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[2][1], grid[3][2]),
+         new Path.Rectangle(grid[2][2], grid[3][3])
+       );
+      this.item.fillColor = 'magenta';
+      break;
+    case 'O':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[0][2], grid[1][3]),
+         new Path.Rectangle(grid[1][2], grid[2][3])
+       );
+      this.item.fillColor = 'blue';
+      break;
+    case 'S':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[0][2], grid[1][3]),
+         new Path.Rectangle(grid[1][0], grid[2][1])
+       );
+      this.item.fillColor = 'cyan';
+      break;
+    case 'T':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[1][2], grid[2][3]),
+         new Path.Rectangle(grid[1][0], grid[2][1])
+       );
+      this.item.fillColor = 'green';
+      break;
+    case 'Z':
+      this.item = new CompoundPath(
+         new Path.Rectangle(grid[0][1], grid[1][2]),
+         new Path.Rectangle(grid[1][1], grid[2][2]),
+         new Path.Rectangle(grid[0][0], grid[1][1]),
+         new Path.Rectangle(grid[1][2], grid[2][3])
+       );
+      this.item.fillColor = 'orange';
+      break;
+    default:
+      this.item = new CompoundPath();
+      break;
+    }
+
+    this.item.strokeColor = 'black';
   }
 });
 
-var nextBlock = function (blocks) {
-  var block = blocks.lastChild;
-  var width = block.bounds.width;
-  var height = block.bounds.height;
-  var size = new Size(width, height);
-  var point = block.segments[2].point;
-  switch(Math.round(Math.random() * 3)) {
-    case 0:
-      point = new Point(point.x - width * 2, point.y - height);
-      break;
-    case 1:
-      point = new Point(point.x - width, point.y - height * 2);
-      break;
-    case 2:
-      point = new Point(point.x, point.y - height);
-      break;
-    default:
-      point = new Point(point.x - width, point.y);
-      break;
+// Create a grid of points
+// topLeft: top left point
+// blockSize: size of each block
+// width: number of blocks wide
+// height: number of blocks deep
+var createGrid = function (topLeft, blockSize, width, height) {
+  var grid = [];
+  for (var j = 0; j <= height; j++) {
+    var row = [];
+    for (var i = 0; i <= width; i++) {
+      row.push(
+        new Point(topLeft.x + blockSize.width * i,
+          topLeft.y + blockSize.height * j));
+    }
+    grid.push(row);
   }
-  console.log(point);
-  return new Path.Rectangle(point, size);
+  return grid;
 };
