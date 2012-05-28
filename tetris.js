@@ -7,10 +7,26 @@ window.onload = function() {
 
   block = new Tetrimino();
   var activeBlock = block;
+  console.log(activeBlock);
 
   view.onFrame = function(event) {
     if (event.count % speed === speed - 1) {
-      block.iterate();
+      activeBlock.iterate();
+    }
+  };
+
+  var tool = new Tool();
+  tool.onKeyDown = function(event) {
+    switch(event.key) {
+      case 'left':
+        activeBlock.item.position.x -= activeBlock.size.width;
+        break;
+      case 'right':
+        activeBlock.item.position.x += activeBlock.size.width;
+        break;
+      case 'up':
+        activeBlock.item.rotate(90);
+        break;
     }
   }
 };
@@ -18,8 +34,9 @@ window.onload = function() {
 var Tetrimino = Base.extend({
   initialize: function(point, size) {
     var BLOCKSIZE = 20;
-    this.types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-    this.point = (typeof point === 'undefined') ? new Point(200,200) : point;
+    var types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
+    this.type = types[Math.round(Math.random() * 6)];
+    this.point = (typeof point === 'undefined') ? new Point(160,0) : point;
     this.size = (typeof size === 'undefined') ? new Size(BLOCKSIZE,BLOCKSIZE) : size;
     this.isFalling = true;
     this.createPath(this.point, this.size);
@@ -36,9 +53,8 @@ var Tetrimino = Base.extend({
 
   createPath: function(point, blockSize) {
     var grid = createGrid(point, blockSize, 3, 4);
-    var type = this.types[Math.round(Math.random() * 7)];
 
-    switch(type) {
+    switch(this.type) {
     case 'I':
       this.item = new CompoundPath(
          new Path.Rectangle(grid[0][1], grid[1][2]),
@@ -116,7 +132,7 @@ var Tetrimino = Base.extend({
 // blockSize: size of each block
 // width: number of blocks wide
 // height: number of blocks deep
-var createGrid = function (topLeft, blockSize, width, height) {
+var createGrid = function(topLeft, blockSize, width, height) {
   var grid = [];
   for (var j = 0; j <= height; j++) {
     var row = [];
