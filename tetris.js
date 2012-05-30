@@ -1,5 +1,5 @@
 
-var speed = 20;
+var SPEED = 20;
 
 paper.install(window);
 window.onload = function() {
@@ -10,8 +10,8 @@ window.onload = function() {
   console.log(activeBlock);
 
   view.onFrame = function(event) {
-    if (event.count % speed === speed - 1) {
-      activeBlock.iterate();
+    if (event.count % SPEED === SPEED - 1) {
+       activeBlock.iterate();
     }
   };
 
@@ -35,7 +35,7 @@ var Tetrimino = Base.extend({
   initialize: function(point, size) {
     var BLOCKSIZE = 20;
     var types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-    this.type = types[Math.round(Math.random() * 6)];
+    this.type = types[Math.round(Math.random() * (types.length -1))];
     this.point = (typeof point === 'undefined') ? new Point(160,0) : point;
     this.size = (typeof size === 'undefined') ? new Size(BLOCKSIZE,BLOCKSIZE) : size;
     this.isFalling = true;
