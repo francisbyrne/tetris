@@ -5,7 +5,7 @@ paper.install(window);
 window.onload = function() {
   paper.setup('tetrisCanvas');
 
-  block = new Tetrimino();
+  block = new Tetrimino(new Point(160,0));
   var activeBlock = block;
   console.log(activeBlock);
 
@@ -19,34 +19,65 @@ window.onload = function() {
   tool.onKeyDown = function(event) {
     switch(event.key) {
       case 'left':
-        activeBlock.item.position.x -= activeBlock.size.width;
+        if (!activeBlock.isTouching('left'))
+          activeBlock.position.x -= activeBlock.blockSize.width;
         break;
       case 'right':
-        activeBlock.item.position.x += activeBlock.size.width;
+        if (!activeBlock.isTouching('right'))
+        activeBlock.position.x += activeBlock.blockSize.width;
         break;
       case 'up':
-        activeBlock.item.rotate(90);
+        activeBlock.rotate(90);
+        if (activeBlock.isTouching('left') || activeBlock.isTouching('right'))
+          activeBlock.rotate(-90);
         break;
     }
   }
 };
 
-var Tetrimino = Base.extend({
-  initialize: function(point, size) {
-    var BLOCKSIZE = 20;
+var Tetrimino = CompoundPath.extend({
+  initialize: function(point, blockSize) {
+    this.base();
+    var BLOCKSIZE = new Size(20, 20);
+    var START_POSITION = new Point(160, 0);
+    var point = (typeof point === 'undefined') ? START_POSITION : point;
     var types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
     this.type = types[Math.round(Math.random() * (types.length -1))];
-    this.point = (typeof point === 'undefined') ? new Point(160,0) : point;
-    this.size = (typeof size === 'undefined') ? new Size(BLOCKSIZE,BLOCKSIZE) : size;
+    this.blockSize = (typeof blockSize === 'undefined') ? BLOCKSIZE : blockSize;
     this.isFalling = true;
-    this.createPath(this.point, this.size);
+    this.createPath(point, this.blockSize);
+  },
+
+  isTouching: function(object) {
+        for (i in this.children) {
+          var child = this.children[i];
+          for (j in child.segments) {
+            var point = child.segments[j].point;
+            switch (object) {
+              case 'left':
+                if (point.x <= 0)
+                  return point.x <= 0;
+                break;
+              case 'right':
+                if (point.x >= view.size.width)
+                  return true;
+                break;
+              case 'bottom':
+                if (point.y >= view.size.height)
+                  return true;
+                break;
+            }
+          }
+        }
+        return false;
   },
 
   iterate: function() {
     if (this.isFalling) {
-      this.item.position.y += this.size.height;
+      this.position.y += this.blockSize.height;
 
-      if (this.item.position.y >= view.size.height - this.size.height)
+      //if (this.position.y >= view.size.height - this.blockSize.height)
+      if (this.isTouching('bottom'))
         this.isFalling = false;
     }
   },
@@ -56,74 +87,74 @@ var Tetrimino = Base.extend({
 
     switch(this.type) {
     case 'I':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[2][1], grid[3][2]),
-         new Path.Rectangle(grid[3][1], grid[4][2])
+         new Path.Rectangle(grid[3][1], grid[4][2])]
        );
-      this.item.fillColor = 'red';
+      this.fillColor = 'red';
       break;
     case 'J':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[2][1], grid[3][2]),
-         new Path.Rectangle(grid[2][0], grid[3][1])
+         new Path.Rectangle(grid[2][0], grid[3][1])]
        );
-      this.item.fillColor = 'yellow';
+      this.fillColor = 'yellow';
       break;
     case 'L':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[2][1], grid[3][2]),
-         new Path.Rectangle(grid[2][2], grid[3][3])
+         new Path.Rectangle(grid[2][2], grid[3][3])]
        );
-      this.item.fillColor = 'magenta';
+      this.fillColor = 'magenta';
       break;
     case 'O':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[0][2], grid[1][3]),
-         new Path.Rectangle(grid[1][2], grid[2][3])
+         new Path.Rectangle(grid[1][2], grid[2][3])]
        );
-      this.item.fillColor = 'blue';
+      this.fillColor = 'blue';
       break;
     case 'S':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[0][2], grid[1][3]),
-         new Path.Rectangle(grid[1][0], grid[2][1])
+         new Path.Rectangle(grid[1][0], grid[2][1])]
        );
-      this.item.fillColor = 'cyan';
+      this.fillColor = 'cyan';
       break;
     case 'T':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[1][2], grid[2][3]),
-         new Path.Rectangle(grid[1][0], grid[2][1])
+         new Path.Rectangle(grid[1][0], grid[2][1])]
        );
-      this.item.fillColor = 'green';
+      this.fillColor = 'green';
       break;
     case 'Z':
-      this.item = new CompoundPath(
-         new Path.Rectangle(grid[0][1], grid[1][2]),
+      this.addChildren(
+         [new Path.Rectangle(grid[0][1], grid[1][2]),
          new Path.Rectangle(grid[1][1], grid[2][2]),
          new Path.Rectangle(grid[0][0], grid[1][1]),
-         new Path.Rectangle(grid[1][2], grid[2][3])
+         new Path.Rectangle(grid[1][2], grid[2][3])]
        );
-      this.item.fillColor = 'orange';
+      this.fillColor = 'orange';
       break;
     default:
-      this.item = new CompoundPath();
+      this.addChildren();
       break;
     }
 
-    this.item.strokeColor = 'black';
+    this.strokeColor = 'black';
   }
 });
 
