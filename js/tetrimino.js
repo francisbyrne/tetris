@@ -11,11 +11,11 @@ var Tetrimino = CompoundPath.extend({
     this.blockSize = (typeof blockSize === 'undefined') ? BLOCKSIZE : blockSize;
     this.isFalling = true;
     this.createPath(point, this.blockSize);
+    this.edges = this._populateEdges();
+    console.log(this.edges);
     // var centre = new Path.Circle(this.position, 5);
     // centre.fillColor='yellow';
   },
-
-  edges: [],
 
   isTouching: function(object) {
     for (i in this.children) {
@@ -36,38 +36,42 @@ var Tetrimino = CompoundPath.extend({
               return true;
             break;
           default:
-            for (k in object.children) {
-              var objChild = object.children[i];
-              for (j in objChild.segments) {
-                var objPoint = objChild.segments[j].point;
-                if (point === objPoint)
-                  return true;
-              }
-            }
         }
       }
     }
     return false;
   },
 
-    // Create a grid of points
-// topLeft: top left point
-// blockSize: size of each block
-// width: number of blocks wide
-// height: number of blocks deep
-createGrid: function(topLeft, blockSize, width, height) {
-  var grid = [];
-  for (var j = 0; j <= height; j++) {
-    var row = [];
-    for (var i = 0; i <= width; i++) {
-      row.push(
-        new Point(topLeft.x + blockSize.width * i,
-          topLeft.y + blockSize.height * j));
+  _populateEdges: function() {
+    var edges = [];
+    _.each(this.children, function(block) {
+      _.each(block.segments, function(point) {
+        if (!_.include(edges, point))
+          edges.push(point);
+      });
+    });
+    return edges;
+  },
+
+
+  // Create a grid of points
+  // topLeft: top left point
+  // blockSize: size of each block
+  // width: number of blocks wide
+  // height: number of blocks deep
+  createGrid: function(topLeft, blockSize, width, height) {
+    var grid = [];
+    for (var j = 0; j <= height; j++) {
+      var row = [];
+      for (var i = 0; i <= width; i++) {
+        row.push(
+          new Point(topLeft.x + blockSize.width * i,
+            topLeft.y + blockSize.height * j));
+      }
+      grid.push(row);
     }
-    grid.push(row);
-  }
-  return grid;
-},
+    return grid;
+  },
 
   createPath: function(point, blockSize) {
     var grid = this.createGrid(point, blockSize, 3, 4);
