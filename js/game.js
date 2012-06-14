@@ -45,7 +45,7 @@ var Game = function() {
       grid.push(row);
     }
     return grid;
-  },
+  };
 
   var tool = new Tool();
   tool.onKeyDown = function(event) {
