@@ -1,56 +1,65 @@
-// Tetrimino object, represents a tetris piece as a compound path of rectangle paths
+// Tetrimino object (tet for short), represents a tetris piece as a compound path of rectangle paths
 // with added collision detection.
 var Tetrimino = CompoundPath.extend({
-  initialize: function(point, blockSize) {
+
+  initialize: function(point, type) {
+
+    // super constructor    
     this.base();
-    var BLOCKSIZE = new Size(20, 20);
-    var START_POSITION = new Point(160, 0);
-    var point = (typeof point === 'undefined') ? START_POSITION : point;
-    var types = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
-    this.type = types[Math.round(Math.random() * (types.length -1))];
-    this.blockSize = (typeof blockSize === 'undefined') ? BLOCKSIZE : blockSize;
-    this.isFalling = true;
-    this.createPath(point, this.blockSize);
-    this.edges = this._populateEdges();
-    console.log(this.edges);
-    // var centre = new Path.Circle(this.position, 5);
-    // centre.fillColor='yellow';
+
+    // constants
+    var START_POSITION = new Point(160, 0),
+      TYPES = {
+        'i' : { size: 4, blocks: [0x0F00, 0x2222, 0x00F0, 0x4444], color: 'cyan'   },
+        'j' : { size: 3, blocks: [0x44C0, 0x8E00, 0x6440, 0x0E20], color: 'blue'   },
+        'l' : { size: 3, blocks: [0x4460, 0x0E80, 0xC440, 0x2E00], color: 'orange' },
+        'o' : { size: 2, blocks: [0xCC00, 0xCC00, 0xCC00, 0xCC00], color: 'yellow' },
+        's' : { size: 3, blocks: [0x06C0, 0x8C40, 0x6C00, 0x4620], color: 'green'  },
+        't' : { size: 3, blocks: [0x0E40, 0x4C40, 0x4E00, 0x4640], color: 'purple' },
+        'z' : { size: 3, blocks: [0x0C60, 0x4C80, 0xC600, 0x2640], color: 'red'    }
+      };
+
+    // variables
+    this.size     = TYPES[type].size;                                     // max height/width (in blocks)
+    this.blocks   = TYPES[type].blocks;                                   // blocks in tet for each direction
+    this.rotation = Math.round(Math.random() * (this.blocks.length -1));  // rotation of the block
+    this.color    = TYPES[type].color;                                    // fill color of tet
+    this.position = (typeof point === 'undefined') ? START_POSITION : point;
   },
 
-  isTouching: function(object) {
-    for (i in this.children) {
-      var child = this.children[i];
-      for (j in child.segments) {
-        var point = child.segments[j].point;
-        switch (object) {
-          case 'left':
-            if (point.x <= 0)
-              return point.x <= 0;
-            break;
-          case 'right':
-            if (point.x >= view.size.width)
-              return true;
-            break;
-          case 'bottom':
-            if (point.y >= view.size.height)
-              return true;
-            break;
-          default:
-        }
+  //------------------------------------------------
+  // do the bit manipulation and iterate through each
+  // occupied block (x,y) for a given piece
+  //------------------------------------------------
+  eachblock: function(x, y, fn) {
+    var bit, result, row = 0, col = 0, blocks = this.blocks[this.rotation];
+    for(bit = 0x8000 ; bit > 0 ; bit = bit >> 1) {
+      if (blocks & bit) {
+        fn(x + col, y + row);
+      }
+      if (++col === 4) {
+        col = 0;
+        ++row;
       }
     }
-    return false;
   },
 
-  _populateEdges: function() {
-    var edges = [];
-    _.each(this.children, function(block) {
-      _.each(block.segments, function(point) {
-        if (!_.include(edges, point))
-          edges.push(point);
-      });
-    });
-    return edges;
+  drawTet: function(dx, dy) {
+    var x = this.position.x,
+      y = this.position.y;
+      
+    this.eachblock(x, y, function(dx, dy) {
+      this.addChild( new Path.Rectangle(new Point(x, y), new Size(dx, dy)) );
+    }.bind(this));
+
+    console.log(this.children);
+    this.selected = true;
+
+    this.fillColor = this.color;
+    this.strokeColor = 'black';
+
+    // Draw the view now:
+     paper.view.draw();
   },
 
 

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tetris</title>
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.css" />
+  <link rel="stylesheet" type="text/css" href="css/tetris.css" />
+  <script type='text/javascript' src="js/paper.js"></script>
+  <script type='text/javascript' src="js/underscore.js"></script>
+  <script type='text/javascript'>
+    paper.install(window);
+  </script>
+  <script type='text/javascript' src="js/tetrimino.js"></script>
+  <script type='text/javascript' src="js/game.js"></script>
+  <script type='text/javascript' src="js/main.js"></script>
+</head>
+
+<body>
+  <div class="row-fluid">
+  <div class="span2">hello</div>
+  <div id="scoreboard" class="span2">
+    <p><canvas id="upcoming"></canvas></p>
+    <p>score <span id="score">00000</span></p>
+    <p>rows <span id="rows">0</span></p>
+  </div>
+  <div id="canvas-container" class="span6">
+    <canvas id="tetrisCanvas" width="400px" height="800px"></canvas>
+  </div>
+  <div class="span2">hello</div>
+</div>
+</body>
+</html>

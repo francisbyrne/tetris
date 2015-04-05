@@ -1,80 +1,62 @@
 // Game object representing the tetris game
 var Game = function() {
 
-  var SPEED = 20;
+  //----------------------------------
+  // constants
+  //----------------------------------
+  var SPEED = 20, // no. frames between each movement
+    nx      = 10, // width of tetris court (in blocks)
+    ny      = 20, // height of tetris court (in blocks)
+    nux     = 5,  // width of upcoming preview (in blocks)
+    nuy     = 4;  // height of upcoming preview (in blocks)
 
-  paper.setup('tetrisCanvas');
+  var board,
+    activeTet,
 
-  var activeTetrimino = new Tetrimino(new Point(160,0));
-  var bottom = [];
-  this.speed = SPEED;
-  this.paused = false;
+      // Get a reference to the canvas object
+    canvas = document.getElementById('tetrisCanvas');
 
-  this.iterate = function() {
-    if (activeTetrimino.isFalling) {
-      activeTetrimino.position.y += activeTetrimino.blockSize.height;
+    dx = canvas.width / nx,   // single block width
+    dy = canvas.height / ny;  // single block height
+
+  // Create an empty project and a view for the canvas:
+  paper.setup(canvas);
       
-      // test colliding with other tetriminos
-      
-      if (activeTetrimino.isTouching('bottom')) {
-        onLanding();
-      }
-    }
-  };
+  activeTet = new Tetrimino(new Point(160, 160), 'j');
+  activeTet.drawTet(dx, dy);
 
-  var onLanding = function() {
-    activeTetrimino.isFalling = false;
-    bottom.push(activeTetrimino);
-    activeTetrimino = new Tetrimino(new Point(160, 0));
-  };
 
-  // Create a grid of points
-  // topLeft: top left point
-  // blockSize: size of each block
-  // width: number of blocks wide
-  // height: number of blocks deep
-  var createGrid = function(topLeft, blockSize, width, height) {
-    var grid = [];
-    for (var j = 0; j <= height; j++) {
-      var row = [];
-      for (var i = 0; i <= width; i++) {
-        row.push(
-          new Point(topLeft.x + blockSize.width * i,
-            topLeft.y + blockSize.height * j));
-      }
-      grid.push(row);
-    }
-    return grid;
-  };
+  // var tool = new Tool();
+  // tool.onKeyDown = function(event) {
+  //   switch(event.key) {
+  //     case 'left':
+  //       if (!activeTet.isTouching('left') && ! this.paused)
+  //         activeTet.position.x -= activeTet.blockSize.width;
+  //       break;
+  //     case 'right':
+  //       if (!activeTet.isTouching('right') && ! this.paused)
+  //         activeTet.position.x += activeTet.blockSize.width;
+  //       break;
+  //     case 'up':
+  //       if ( ! this.paused ) {
+  //         // console.log(activeTet.position);
+  //         // var pos = new Point(activeTet.position.x + activeTet.blockSize.width / 2, activeTet.position.y);
+  //         // console.log(pos);
+  //         activeTet.rotate(90);
+  //         if (activeTet.isTouching('left') || activeTet.isTouching('right'))
+  //           activeTet.rotate(-90);
+  //       }
+  //       break;
+  //     case 'down':
+  //       this.speed = 2;
+  //       break;
+  //     case 'p':
+  //       this.paused = ! this.paused;
+  //     default:
+  //   }
+  // }.bind(this);
 
-  var tool = new Tool();
-  tool.onKeyDown = function(event) {
-    switch(event.key) {
-      case 'left':
-        if (!activeTetrimino.isTouching('left') && ! this.paused)
-          activeTetrimino.position.x -= activeTetrimino.blockSize.width;
-        break;
-      case 'right':
-        if (!activeTetrimino.isTouching('right') && ! this.paused)
-          activeTetrimino.position.x += activeTetrimino.blockSize.width;
-        break;
-      case 'up':
-        if ( ! this.paused ) {
-          activeTetrimino.rotate(90);
-          if (activeTetrimino.isTouching('left') || activeTetrimino.isTouching('right'))
-            activeTetrimino.rotate(-90);
-        }
-        break;
-      case 'down':
-        this.speed = 2;
-        break;
-      case 'p':
-        this.paused = ! this.paused;
-      default:
-    }
-  }.bind(this);
-
-  tool.onKeyUp = function(event) {
-    this.speed = SPEED;
-  }.bind(this);
+  // tool.onKeyUp = function(event) {
+  //   this.speed = SPEED;
+  // }.bind(this);
 };
